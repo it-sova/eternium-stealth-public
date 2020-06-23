@@ -46,6 +46,8 @@ def find_hatch() -> int:
                 _stones = int(re.search(r"(\d+)", LastJournalMessage()).group())
                 if _stones > BANK_WEIGHT_LIMIT:
                     print(f"Bank weight limit reached, current weight {_stones}")
+                    SetARStatus(False)
+                    Disconnect()
 
             return LastContainer()
 
@@ -114,6 +116,10 @@ def move_boat(direction):
     Wait(10000)
     UOSay("drop anchor")
 
+
+SetARStatus(True)
+SetWarMode(False)
+SetPauseScriptOnDisconnectStatus(True)
 while not Dead():
     for _ in range(0, 10):
         fishing()
