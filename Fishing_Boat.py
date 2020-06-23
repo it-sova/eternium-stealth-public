@@ -1,5 +1,5 @@
-from py_stealth import *
 from datetime import timedelta, datetime as dt
+from py_stealth import *
 
 SKIP_TILE_MESSAGES = [
     "cannot be seen",
@@ -9,13 +9,15 @@ SKIP_TILE_MESSAGES = [
     "Далековато"
 
 ]
-
+#
 NEXT_TRY_MESSAGES = [
     "You fish a while",
     "You pull",
     "Ты поймал"
 ]
 
+LOOT = [0x175D, 0x1078, 0x0F8E, 0x0F8A, 0x0F78, 0x0F7F, 0x3B03]
+HATCH_TYPES = [0x3EAE, 0x3EB9, 0x3E65, 0x3E93]
 
 WATER_TILES = [
     0x00A8, 0x00AB,
@@ -31,6 +33,28 @@ def cancel_targets():
     if TargetPresent():
         CancelTarget()
 
+#
+def find_hatch() -> int:
+    SetFindDistance(3)
+    for _hatch in HATCH_TYPES:
+        if FindType(_hatch, Ground()):
+            UseObject(FindItem())
+            Wait(1000)
+            return LastContainer()
+
+    print("No hatch found, unload to bank disabled")
+    return 0
+
+
+def check_for_loot(hatch: int):
+    if hatch > 0:
+        for _loot in LOOT:
+            if FindType(_loot, Ground()):
+                Grab(FindItem(), 0)
+                Wait(1000)
+                if FindType(_loot, Backpack()):
+                    MoveItem(FindItem(), 0, hatch, 0, 0, 0)
+                    Wait(1000)
 
 def find_tiles(center_x, center_y, radius):
     _min_x, _min_y = center_x-radius, center_y-radius
@@ -50,6 +74,9 @@ def fishing():
             if _try > 15:
                 break
 
+            #
+            check_for_loot(find_hatch())
+            #
             cancel_targets()
             _started = dt.now()
             UseObject(ObjAtLayer(LhandLayer()))
@@ -80,11 +107,10 @@ def move_boat(direction):
     Wait(10000)
     UOSay("drop anchor")
 
-
 while not Dead():
     for _ in range(0, 10):
         fishing()
-        move_boat("forward")
+        move_boat("forward ")
     for _ in range(0, 10):
         fishing()
         move_boat("back")
