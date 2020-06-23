@@ -1,4 +1,5 @@
 from datetime import timedelta, datetime as dt
+import re
 from py_stealth import *
 
 SKIP_TILE_MESSAGES = [
@@ -18,6 +19,7 @@ NEXT_TRY_MESSAGES = [
 
 LOOT = [0x175D, 0x1078, 0x0F8E, 0x0F8A, 0x0F78, 0x0F7F, 0x3B03]
 HATCH_TYPES = [0x3EAE, 0x3EB9, 0x3E65, 0x3E93]
+BANK_WEIGHT_LIMIT = 5300
 
 WATER_TILES = [
     0x00A8, 0x00AB,
@@ -38,8 +40,13 @@ def find_hatch() -> int:
     SetFindDistance(3)
     for _hatch in HATCH_TYPES:
         if FindType(_hatch, Ground()):
+            _started = dt.now()
             UseObject(FindItem())
-            Wait(1000)
+            if WaitJournalLine(_started, "stones in your Bank Box", 1000):
+                _stones = int(re.search(r"(\d+)", LastJournalMessage()).group())
+                if _stones > BANK_WEIGHT_LIMIT:
+                    print(f"Bank weight limit reached, current weight {_stones}")
+
             return LastContainer()
 
     print("No hatch found, unload to bank disabled")
