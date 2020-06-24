@@ -123,7 +123,7 @@ SetPauseScriptOnDisconnectStatus(True)
 while not Dead():
     for _ in range(0, 10):
         fishing()
-        move_boat("forward ")
+        move_boat("forward")
     for _ in range(0, 10):
         fishing()
         move_boat("back")
