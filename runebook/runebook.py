@@ -17,7 +17,7 @@ class Runebook:
         if _runebook_gump_id > 0:
             self.runebook_gump_id = _runebook_gump_id
         else:
-            raise RuntimeError("[Runebook] Failed to get runebook gump id")
+            raise ValueError("[Runebook] Failed to get runebook gump id")
 
 
     def _find_runebook_gump_id(self) -> int:
@@ -42,7 +42,6 @@ class Runebook:
         ''' Press specified button by id in runebook '''
         for _index in range(0, GetGumpsCount()):            
             if GetGumpID(_index) == self.runebook_gump_id:
-                print("Found!")                
                 NumGumpButton(_index, button)                
                 Wait(500)
 
@@ -61,4 +60,12 @@ class Runebook:
 
     def recall(self, rune: int) -> bool:
         ''' Recalls to selected rune '''
+        _x = GetX(Self())
+        _y = GetY(Self())
+        _try = 0
         self._press_gump_button(1)
+        while _x == GetX(Self()) and _y == GetY(Self()):
+            _try += 1
+            if _try > 20:
+                raise RuntimeError("[Runebook] Recall failed!")            
+            Wait(1000)
