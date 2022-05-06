@@ -4,12 +4,11 @@ from Scripts.helpers import Types
 import re
 
 # Serial сундука
-HOME_CHEST = 0x4004389C
+HOME_CHEST = 0x40018746
 # Коорды возле сундука
-NEAR_HOME_POINT = (1348, 2843)
+NEAR_HOME_POINT = (2009, 358)
 # Коорды в шахте ( по центру )
-MINE_COORDINATES = (1371, 2714)
-
+MINE_COORDINATES = (1905, 368)
 
 
 TOOLTIP_REGEX = re.compile(r"\s+(\w+ ore)\s+\|Amount:\s+(\d+)")
@@ -29,7 +28,7 @@ NEXT_TRY_MESSAGES = [
 ]
 
 CAVE_TILES = range(1339, 1359)
-TILE_SEARCH_RANGE = 100
+TILE_SEARCH_RANGE = 10
 
 UNLOAD_WEIGHT = MaxWeight() - 50
 
@@ -55,7 +54,8 @@ def find_tiles(center_x, center_y, radius):
     _max_x, _max_y = center_x+radius, center_y+radius
     _tiles_coordinates = []
     for _tile in CAVE_TILES:
-        _tiles_coordinates += GetStaticTilesArray(_min_x, _min_y, _max_x, _max_y, WorldNum(), _tile)
+        _tiles_coordinates += GetStaticTilesArray(
+            _min_x, _min_y, _max_x, _max_y, WorldNum(), _tile)
     print("[FindTiles] Found "+str(len(_tiles_coordinates))+" tiles")
     return _tiles_coordinates
 
@@ -107,7 +107,8 @@ def mine():
                 WaitForTarget(2000)
                 if TargetPresent():
                     WaitTargetTile(_tile, _x, _y, _z)
-                    WaitJournalLine(_started, "|".join(SKIP_TILE_MESSAGES + NEXT_TRY_MESSAGES), 15000)
+                    WaitJournalLine(_started, "|".join(
+                        SKIP_TILE_MESSAGES + NEXT_TRY_MESSAGES), 15000)
 
                 if InJournalBetweenTimes("|".join(SKIP_TILE_MESSAGES), _started, dt.now()) > 0:
                     break

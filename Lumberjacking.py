@@ -1,28 +1,20 @@
 from py_stealth import *
 from datetime import timedelta, datetime as dt
-from Scripts.telegram import *
 
 # Менять под себя /////////////////////
-NEAR_HOME_POINT = (1347, 2844)
-HOME_CHEST = 0x4004389C
+NEAR_HOME_POINT = (2010, 359)
+HOME_CHEST = 0x40018746
 POINTS = [
-    (0, 1361, 2796, 5),
-    (1, 1383, 2806, 0),
-    (2, 1378, 2838, 0),
-    (3, 1366, 2864, 0),
-    (4, 1363, 2896, 0),
-    (5, 1377, 2922, 0),
-    (6, 1389, 2950, 0),
-    (7, 1367, 2955, 0),
-    (8, 1355, 2980, 0),
-    (9, 1365, 2998, -8),
-    (10, 1394, 2975, 0),
-    (11, 1419, 2970, 0),
-    (12, 1429, 2979, 0),
-    (13, 1407, 3005, 0),
-    (14, 1392, 3020, 0),
-    (15, 1376, 3047, 0),
-
+    (0, 1985, 352, 0),
+    (1, 1986, 377, 3),
+    (2, 2006, 380, 0),
+    (3, 1967, 384, 3),
+    (4, 1952, 406, 0),
+    (5, 1970, 399, 0),
+    (6, 1998, 398, 0),
+    (7, 2017, 401, 0),
+    (8, 2070, 411, 0),
+    (9, 2080, 384, 0)
 ]
 # /////////////////////////////////////
 # Врядли стоит менять под себя
@@ -49,7 +41,6 @@ LOG_COLORS = {
 
 }
 # Common types
-TINKER_TOOLS = 0x1EB8
 AXE = 0x0F43
 LOGS = 0x1BDD
 
@@ -91,40 +82,6 @@ def statistics():
         if FindTypeEx(LOGS, _color, Backpack()):
             _statistics += f"{LOG_COLORS[_color]}: +{FindFullQuantity()} \n"
         Wait(100)
-    telegram_message(_statistics)
-
-
-def sort_trees(trees):
-    _trees_by_distance = {}
-    _ordered_trees_list = []
-    _prev_last_tree = (0, NEAR_HOME_POINT[0], NEAR_HOME_POINT[1])
-
-    def _tree_dist(_tree1, _tree2):
-        return Dist(_tree1[1], _tree1[2], _tree2[1], _tree2[2])
-
-    for _tree in trees:
-        _td = _tree_dist(_tree, _prev_last_tree)
-        if _td % 2 == 0:
-            _td -= 1
-        _trees_group = _trees_by_distance.get(_td, [])
-        _trees_group.append(_tree)
-        _trees_by_distance[_td] = _trees_group
-
-    for current_distance in _trees_by_distance:
-        _trees = _trees_by_distance[current_distance]
-        first_tree = last_tree = _trees[0]
-        for tree1 in _trees:
-            for tree2 in _trees:
-                if _tree_dist(tree1, tree2) > _tree_dist(first_tree, last_tree):
-                    first_tree, last_tree = tree1, tree2
-        if _tree_dist(_prev_last_tree, last_tree) < _tree_dist(_prev_last_tree, first_tree):
-            first_tree, last_tree = last_tree, first_tree
-        _trees.sort(key=lambda _tree: _tree_dist(_tree, first_tree))
-        _ordered_trees_list += _trees
-        _prev_last_tree = last_tree
-
-    return _ordered_trees_list
-
 
 def find_tiles(center_x, center_y, radius):
     _min_x, _min_y = center_x-radius, center_y-radius
@@ -134,19 +91,6 @@ def find_tiles(center_x, center_y, radius):
         _tiles_coordinates += GetStaticTilesArray(_min_x, _min_y, _max_x, _max_y, WorldNum(), _tile)
     print("[FindTiles] Found "+str(len(_tiles_coordinates))+" tiles")
     return _tiles_coordinates
-
-
-def populate_trees_array():
-    _trees = []
-    for point in POINTS:
-        (_point_number, _x, _y, _z) = point
-        if NewMoveXY(_x, _y, True, 0, True):
-            for _tree_tuple in find_tiles(_x, _y, 18):
-                _trees.append(_tree_tuple)
-        else:
-            print("Can't get to point location, skipping")
-    return _trees
-
 
 def move_to_point(x, y):
     _try = 0
@@ -175,37 +119,6 @@ def cancel_targets():
     CancelWaitTarget()
     if TargetPresent():
         CancelTarget()
-
-
-def find_gump(gump_id: int) -> bool:
-    for _gump in range(0, GetGumpsCount()):
-        if GetGumpID(_gump) == gump_id:
-            return True
-    return False
-
-
-def wait_for_gump(button: int, gump_id: int) -> None:
-    _try = 0
-    while not find_gump(gump_id):
-        _try += 1
-        Wait(500)
-        if _try > 30:
-            # print("wat_for_gump timeout")
-            return
-
-    WaitGump(button)
-    Wait(2000)
-
-
-def remove_duplicates(array):
-    return list(set([i for i in array]))
-
-
-def get_sorted_trees():
-    _result = sort_trees(remove_duplicates(populate_trees_array()))
-    print(f"Trees after duplicate removal => {len(_result)}")
-    return _result
-
 
 def lumberjacking(sorted_trees):
     for _t, _x, _y, _z in sorted_trees:
@@ -257,7 +170,6 @@ ClearSystemJournal()
 SetARStatus(True)
 SetMoveOpenDoor(True)
 SetPauseScriptOnDisconnectStatus(True)
-sorted_trees_array = get_sorted_trees()
 while not Dead():
     for point in POINTS:
         (_, x, y, z) = point
